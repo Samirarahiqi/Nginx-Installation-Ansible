@@ -1,0 +1,31 @@
+- name: Make sure the installation path exists
+  file:
+    path: "{{node_exporter_install_path}}/bin"
+    owner: '{{ node_exporter_user }}'
+    group: '{{ node_exporter_group }}'
+    mode: 0755
+    recurse: yes
+    state: directory
+  become: yes
+
+- name: Unarchive exporter archive to tmp
+  ansible.builtin.unarchive:
+    src: '{{node_exporter_binary}}'
+    dest: "{{node_exporter_install_path}}/bin"
+    remote_src: yes
+    extra_opts:
+      - --strip-components=1
+  become: yes
+  become_user: '{{ node_exporter_user }}'
+
+- template:
+    src: 'conf/node-exporter.service'
+    dest: '/etc/systemd/system/node-exporter.service'
+  become: yes
+
+- name: Restart service 
+  ansible.builtin.systemd:
+    state: restarted
+    daemon_reload: yes
+    name: 'node-exporter'
+  become: yes

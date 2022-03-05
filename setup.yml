@@ -1,0 +1,5 @@
+- hosts:
+    - affilio-wordpress
+  roles:
+    - nginx-installation 
+    - node-exporter

@@ -1,0 +1,89 @@
+  - name: "apt-get update"
+    apt:
+      update_cache: yes
+      cache_valid_time: 3600
+    become: yes
+
+  - name: "install nginx dependencies packages"
+    apt:
+      name: "{{pakages}}"
+      state: latest
+    become: yes
+
+    #  - name: Make sure the installation path exists
+    #    file:
+    #      path: "{{nginx_install_path}}/bin"
+    #      owner: '{{ nginx_user }}'
+    #      group: '{{ nginx_group }}'
+    #      mode: 0755
+    #      recurse: yes
+    #      state: directory
+    #    become: yes
+  
+    #  - name: Check if nginx is installed
+    #    command: dpkg-query -W nginx
+    #    register: nginx_deb
+    #    failed_when: nginx_check_deb.rc > 1
+    #    changed_when: nginx_check_deb.rc == 1
+  
+  
+  - name: Install nginx
+    apt:
+      deb: "{{nginx_deb}}" 
+      #  when: my_package_check_deb.rc == 1
+    become: yes
+  
+  - name: Restart service
+    ansible.builtin.systemd:
+      state: restarted
+      daemon_reload: yes
+      name: 'nginx'
+    become: yes
+  
+  - name: delete default nginx site
+    file:
+      path: /etc/nginx/conf.d/default
+      state: absent
+    notify: restart nginx
+    become: yes
+
+  - name: copy nginx site.conf
+    template:
+      src: conf/site.conf.j2
+      dest: /etc/nginx/conf.d/{{ item }}.conf
+      owner: root
+      group: root
+      mode: '0644'
+    notify: restart nginx
+    become: yes
+    with_items: "{{ domain_name }}"
+
+  - name: copy nginx proxy-options.conf
+    template:
+      src: conf/proxy-options.conf.j2
+      dest: /etc/nginx/include.d/proxy-options.conf
+      owner: root
+      group: root
+      mode: '0644'
+    notify: restart nginx
+    become: yes
+
+  - name: copy nginx ssl-options.conf
+    template:
+      src: conf/ssl-options.conf.j2
+      dest: /etc/nginx/include.d/ssl-options.conf
+      owner: root
+      group: root
+      mode: '0644'
+    notify: restart nginx
+    become: yes
+
+  - name: copy nginx nginx.conf
+    template:
+      src: conf/nginx.conf
+      dest: /etc/nginx/nginx.conf
+      owner: root
+      group: root
+      mode: '0644'
+    notify: restart nginx
+    become: yes

@@ -1,0 +1,20 @@
+server {
+    listen 80;
+    server_name www.{{item}} {{item}};
+    return 301 https://{{item}}$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name  www.{{item}} {{item}};
+    include include.d/ssl-options.conf;
+#    include include.d/{{item}}-cert.conf;
+
+    location / {
+	proxy_pass "http://172.16.150.4:3000";
+        include /etc/nginx/include.d/proxy-options.conf;
+    }
+        access_log  /var/log/nginx/{{item}}_access_json.log  mainJSON;
+        error_log  /var/log/nginx/{{item}}_error_json.log;
+   }
+

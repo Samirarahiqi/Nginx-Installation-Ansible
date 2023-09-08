@@ -1,5 +1,5 @@
 - hosts:
-    - affilio-wordpress
+    - server-wordpress
   roles:
     - nginx-installation 
     - node-exporter
